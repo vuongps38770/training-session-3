@@ -12,11 +12,18 @@ from datetime import datetime
 
 import os
 import socket
+import threading
 
-PORT = int(os.environ.get("PORT", 10000))
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(("0.0.0.0", PORT))
-s.listen(1)
+def fake_http_port():
+    PORT = int(os.environ.get("PORT", 10000))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("0.0.0.0", PORT))
+    s.listen(1)
+    print(f"[INFO] Fake port server đang mở ở PORT {PORT}")
+    s.accept()  
+
+threading.Thread(target=fake_http_port, daemon=True).start()
 
 
 
