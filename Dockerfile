@@ -5,11 +5,10 @@ RUN apt-get update && apt-get install -y gcc libffi-dev libssl-dev && rm -rf /va
 WORKDIR /app
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
 EXPOSE 10000
 
-CMD ["python", "simple_server.py"]
+CMD ["sh", "-c", "python simple_server.py & uvicorn web_stub:app --host 0.0.0.0 --port $PORT"]

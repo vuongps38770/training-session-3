@@ -21,7 +21,12 @@ def fake_http_port():
     s.bind(("0.0.0.0", PORT))
     s.listen(1)
     print(f"[INFO] Fake port server đang mở ở PORT {PORT}")
-    s.accept()  
+    
+    while True:
+        conn, addr = s.accept()
+        request = conn.recv(1024)
+        conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nFake port active")
+        conn.close()
 
 threading.Thread(target=fake_http_port, daemon=True).start()
 
