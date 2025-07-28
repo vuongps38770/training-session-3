@@ -5,7 +5,7 @@ from vehicle_manager import VehicleManager
 from vehicle import Vehicle
 from map_client import MapClient
 from rich.console import Console
-
+from datetime import datetime
 # Cấu hình MQTT
 BROKER_ADDRESS = "nozomi.proxy.rlwy.net"
 BROKER_PORT = 32067
@@ -21,6 +21,9 @@ TOPIC_SERVER_REGISTRATION = "dattt/training/agv/{vehicle_id}/registration"
 TOPIC_CLIENT_STATUS = "dattt/training/agv/{}/status"
 # Xe gửi yêu cầu đăng ký
 TOPIC_CLIENT_REGISTER = "dattt/training/agv/register"
+
+TOPIC_SERVER_COMMAND_TEST = "dattt/training/agv/command"
+
 
 # Đối tượng quản lý xe
 vehicle_manager = VehicleManager()
@@ -41,12 +44,22 @@ if not map_client.maps:
 def on_connect(mqtt_client, userdata, flags, rc):
     mqtt_client.subscribe(TOPIC_CLIENT_STATUS.format("+"))  # Đăng ký nhận tất cả trạng thái từ các xe
     mqtt_client.subscribe(TOPIC_CLIENT_REGISTER)
+    mqtt_client.subscribe(TOPIC_SERVER_COMMAND_TEST)
+    
 
 # Hàm callback khi nhận được tin nhắn từ broker
 def on_message(mqtt_client, userdata, msg):
-    print("msg",msg.payload.decode("utf-8"))
     parsed_data = json.loads(msg.payload)
-    print(parsed_data)
+    print('recived 1 message')
+    # print(msg.topic)
+    # vehicle_id = parsed_data["vecId"]
+    # mqtt_client.publish(
+    #             TOPIC_SERVER_COMMAND_TEST,
+    #             json.dumps("R")
+    #         )
+    # mqtt_client.publish(TOPIC_SERVER_COMMAND_TEST, json.dumps(t_payload))
+    # print("sent")
+    
     # payload = json.loads(msg.payload.decode())
 
     # if msg.topic.endswith("status"):
@@ -70,7 +83,46 @@ def on_message(mqtt_client, userdata, msg):
     #             mqtt_client.publish(TOPIC_SERVER_REGISTRATION.format(vehicle_id=payload['vehicle_id']), json.dumps(registration_payload))
     #     except json.JSONDecodeError:
     #         print("Lỗi phân tích cú pháp JSON cho lệnh đăng ký.")
-
+    # if msg.topic == TOPIC_SERVER_COMMAND_TEST:
+    #     print(parsed_data["vecId"])
+    #     t_payload = "hgjhg"
+    #     mqtt_client.publish(TOPIC_SERVER_COMMAND_TEST, json.dumps(t_payload))
+    #     print("sent")
+    #     # Xử lý lệnh điều khiển từ server
+    #     t_payload = {"status": "success"}
+    #     mqtt_client.publish(TOPIC_CLIENT_STATUS.format(vehicle_id=parsed_data.vecId), json.dumps(t_payload))
+    #     print("send to client")
+    if msg.topic == TOPIC_CLIENT_REGISTER:
+        print("subcribe")
+        print("raw msg: ",parsed_data)
+        if "vecId" in parsed_data:
+            vehicle_id = parsed_data["vecId"]
+            print("vecId",vehicle_id)
+            if vehicle_id == "1995A605":
+                mqtt_client.publish(
+                    TOPIC_SERVER_COMMAND_TEST,
+                    json.dumps("R")
+                )
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'R' đến xe {vehicle_id}")
+            elif vehicle_id == "42399305":
+                mqtt_client.publish(
+                    TOPIC_SERVER_COMMAND_TEST,
+                    json.dumps("L")
+                )
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'L' đến xe {vehicle_id}")
+            else:
+                mqtt_client.publish(
+                    TOPIC_SERVER_COMMAND_TEST,
+                    json.dumps("UNKNOWN")
+                )
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'UNKNOWN' đến xe {vehicle_id}")
+            response_payload = {
+                "vehicle_id": vehicle_id,
+                "command": "r"
+            }
+        else:
+            print("Không có 'vecId' trong payload")
+    
 # Hàm xử lý đăng ký xe mới
 def handle_register(vehicle_id, source, destination):
     """Xử lý đăng ký xe mới"""

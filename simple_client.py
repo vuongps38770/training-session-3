@@ -15,6 +15,7 @@ DESTINATION = sys.argv[3]
 # Client - Subscriber
 # Server gửi lệnh điều khiển đến xe
 TOPIC_SERVER_COMMAND = "dattt/training/agv/{vehicle_id}/command"
+TOPIC_SERVER_COMMAND_TEST = "dattt/training/agv/command"
 # Server gửi thông báo đăng ký thành công đến xe
 TOPIC_SERVER_REGISTRATION = "dattt/training/agv/{vehicle_id}/registration"
 
@@ -28,6 +29,7 @@ TOPIC_CLIENT_REGISTER = "dattt/training/agv/register"
 def on_connect(client, userdata, flags, rc):
     client.subscribe(TOPIC_SERVER_COMMAND.format(vehicle_id=VEHICLE_ID))
     client.subscribe(TOPIC_SERVER_REGISTRATION.format(vehicle_id=VEHICLE_ID))
+    
 
 # Hàm callback khi nhận được tin nhắn từ broker
 def on_message(client, userdata, msg):
@@ -73,7 +75,12 @@ def on_message(client, userdata, msg):
         # }
         # client.publish(TOPIC_CLIENT_STATUS.format(vehicle_id=payload['vehicle_id']), json.dumps(command_payload))
         # print(f"Đã gửi trạng thái lệnh: {command_payload}")
-
+        
+    elif msg.topic == TOPIC_SERVER_COMMAND_TEST:
+        # Xử lý lệnh điều khiển từ server
+        client.publish(TOPIC_CLIENT_STATUS.format(vehicle_id=VEHICLE_ID), json.dumps(status_payload))
+        print("send to client")
+        
 # Khởi tạo MQTT client
 client = mqtt.Client()
 client.on_connect = on_connect
