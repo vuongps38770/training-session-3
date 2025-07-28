@@ -6,6 +6,35 @@ from vehicle import Vehicle
 from map_client import MapClient
 from rich.console import Console
 from datetime import datetime
+
+#fake port de deploy
+
+
+import os
+import socket
+
+PORT = int(os.environ.get("PORT", 10000))
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(("0.0.0.0", PORT))
+s.listen(1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Cấu hình MQTT
 BROKER_ADDRESS = "nozomi.proxy.rlwy.net"
 BROKER_PORT = 32067
@@ -243,3 +272,12 @@ while True:
 mqtt_client.loop_stop()
 mqtt_client.disconnect()
 print("Server đã dừng.")
+
+
+
+
+
+
+
+
+
