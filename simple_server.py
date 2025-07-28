@@ -7,45 +7,6 @@ from map_client import MapClient
 from rich.console import Console
 from datetime import datetime
 
-#fake port de deploy
-
-
-import os
-import socket
-import threading
-
-def fake_http_port():
-    PORT = int(os.environ.get("PORT", 10000))
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind(("0.0.0.0", PORT))
-    s.listen(1)
-    print(f"[INFO] Fake port server đang mở ở PORT {PORT}")
-    
-    while True:
-        conn, addr = s.accept()
-        request = conn.recv(1024)
-        conn.sendall(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nFake port active")
-        conn.close()
-
-threading.Thread(target=fake_http_port, daemon=True).start()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # Cấu hình MQTT
 BROKER_ADDRESS = "nozomi.proxy.rlwy.net"
