@@ -8,6 +8,28 @@ from rich.console import Console
 from datetime import datetime
 
 
+
+import sys
+
+class Logger:
+    def __init__(self, filename="log.txt"):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a", encoding="utf-8")
+
+    def write(self, message):
+        self.terminal.write(message)   # vẫn in ra terminal
+        self.log.write(message)        # ghi thêm vào file log
+        self.log.flush()               # flush để không bị trễ
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+sys.stdout = sys.stderr = Logger("log.txt")
+
+
+
+
 # Cấu hình MQTT
 BROKER_ADDRESS = "nozomi.proxy.rlwy.net"
 BROKER_PORT = 32067
@@ -96,34 +118,51 @@ def on_message(mqtt_client, userdata, msg):
     #     print("send to client")
     if msg.topic == TOPIC_CLIENT_REGISTER:
         print("subcribe")
-        print("raw msg: ",parsed_data)
-        if "vecId" in parsed_data:
-            vehicle_id = parsed_data["vecId"]
-            print("vecId",vehicle_id)
-            if vehicle_id == "1995A605":
-                mqtt_client.publish(
-                    TOPIC_SERVER_COMMAND_TEST,
-                    json.dumps("R")
-                )
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'R' đến xe {vehicle_id}")
-            elif vehicle_id == "42399305":
-                mqtt_client.publish(
-                    TOPIC_SERVER_COMMAND_TEST,
-                    json.dumps("L")
-                )
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'L' đến xe {vehicle_id}")
+        print("raw msg: ", parsed_data)
+
+        try:
+            vehicle_id = parsed_data.get("vecId", None)
+            if vehicle_id:
+                print("vecId", vehicle_id)
+
+                if vehicle_id == "1995a65":
+                    mqtt_client.publish(
+                        TOPIC_SERVER_COMMAND_TEST,
+                        json.dumps("R")
+                    )
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'R' đến xe {vehicle_id}")
+                elif vehicle_id == "4239935":
+                    mqtt_client.publish(
+                        TOPIC_SERVER_COMMAND_TEST,
+                        json.dumps("L")
+                    )
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'L' đến xe {vehicle_id}")
+                else:
+                    mqtt_client.publish(
+                        TOPIC_SERVER_COMMAND_TEST,
+                        json.dumps("UNKNOWN")
+                    )
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'UNKNOWN' đến xe {vehicle_id}")
+
+                response_payload = {
+                    "vehicle_id": vehicle_id,
+                    "command": "r"
+                }
             else:
                 mqtt_client.publish(
-                    TOPIC_SERVER_COMMAND_TEST,
-                    json.dumps("UNKNOWN")
-                )
-                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'UNKNOWN' đến xe {vehicle_id}")
-            response_payload = {
-                "vehicle_id": vehicle_id,
-                "command": "r"
-            }
-        else:
-            print("Không có 'vecId' trong payload")
+                        TOPIC_SERVER_COMMAND_TEST,
+                        json.dumps("Id rỗng")
+                    )
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Đã gửi 'Id rỗng' đến xe {vehicle_id}")
+
+        except Exception as e:
+            mqtt_client.publish(
+                        TOPIC_SERVER_COMMAND_TEST,
+                        json.dumps("Định dạng sai")
+                    )
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+            print("Lỗi xử lý tin nhắn đăng ký:", str(e))
+
     
 # Hàm xử lý đăng ký xe mới
 def handle_register(vehicle_id, source, destination):

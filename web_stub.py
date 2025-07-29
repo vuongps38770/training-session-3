@@ -1,14 +1,32 @@
+from flask import Flask, render_template
+from flask_socketio import SocketIO
+import threading
+import time
+import signal
+import sys
 
-from fastapi import FastAPI
-import os
+app = Flask(__name__)
+socketio = SocketIO(app, async_mode='threading')
 
-app = FastAPI()
+def tail_log():
+    with open("log.txt", "r") as f:
+        f.seek(0, 2)
+        while True:
+            line = f.readline()
+            if line:
+                socketio.emit("log", {"data": line})
+            time.sleep(0.5)
 
-@app.get("/")
-def read_root():
-    return {"status": "Server is running"}
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+def signal_handler(sig, frame):
+    print("\n[INFO] Đang thoát server...")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    import uvicorn
-    uvicorn.run("web_stub:app", host="0.0.0.0", port=port)
+    threading.Thread(target=tail_log, daemon=True).start()  # ← FIX: daemon=True
+    socketio.run(app, host="0.0.0.0", port=5000)

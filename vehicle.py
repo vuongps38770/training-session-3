@@ -1,6 +1,11 @@
 import networkx as nx
 from map_client import MapClient
 import time
+from typing import TypedDict
+
+class NodeOffset(TypedDict):
+    x: int
+    y: int
 
 class Vehicle:
     def __init__(self, vehicle_id: int, source=None, destination=None, map_client: MapClient = None):
@@ -12,7 +17,22 @@ class Vehicle:
         self.status = "stop"
         if source and destination and map_client:
             self.schedule()
+            
+    def get_direction(from_node:NodeOffset, to_node:NodeOffset):
+        dx = to_node["x"] - from_node["x"]
+        dy = to_node["y"] - from_node["y"]
 
+        if dx == 1 and dy == 0:
+            return "E"
+        elif dx == -1 and dy == 0:
+            return "W"
+        elif dx == 0 and dy == 1:
+            return "S"
+        elif dx == 0 and dy == -1:
+            return "N"
+        else:
+            return "UNKNOWN"
+        
     def change_status(self, status: str):
         """Change the status of the vehicle."""
         self.status = status
