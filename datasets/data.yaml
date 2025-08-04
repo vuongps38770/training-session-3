@@ -1,7 +1,15 @@
-path: datasets/traffic
-train: images/train
-val: images/val
+train: datasets/traffic/images/train
+val: datasets/traffic/images/val
 
-names:
-  0: green_light
-  1: red_light
+nc: 9
+names: [
+  "green_light",
+  "red_light",
+  "red_N",
+  "green_N",
+  "red_E",
+  "green_E",
+  "green_S",
+  "green_W",
+  "red_S"
+]

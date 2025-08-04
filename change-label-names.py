@@ -1,8 +1,8 @@
 import os
 
-folder_path = r"D:\hackathon\labels"  
+folder_path = r"D:\hackathon\yolo\label"  
 old_class = "0"
-new_class = "2"
+new_class = "8"
 
 for filename in os.listdir(folder_path):
     if filename.endswith(".txt"):

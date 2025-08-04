@@ -1,0 +1,1 @@
+ffmpeg -i video/video.mp4 -vf fps=1 output_folder/frame_%04d.jpg
